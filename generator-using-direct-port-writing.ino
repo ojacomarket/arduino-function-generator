@@ -9,7 +9,6 @@ const byte MCP4802_REGISTER  = 0b0001; // first bit (channel A or B --> 0 or 1),
 byte counter = 0;
 volatile byte mcp_register = 0;
 void setup() {
-  Serial.begin(9600);
   DDRB |= (1 << DDB5) | (1 << DDB3) | (1 << DDB2); // SPI.begin();
   PORTB |= (1 << PORTB2);
   SPCR = 0b01010000;//(1 << SPE) | (1 << MSTR) | (0 << CPOL) | (0 << CPHA) | (8 << SPR0);
