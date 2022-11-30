@@ -1,46 +1,6 @@
-#include <SPI.h>
-#include <Waveforms8.h>
-#define CS_PIN 10 // PIN on Arduino must be labeled as SS and 10 means that MCP4802 will connect to Arduino on pin 10
-#define LDAC_PIN 9 // any digital pin to send LDAC signal
-#define DAC_RESOLUTION 256 // MCP4802 has 8 bits resolution
-#define D8 8 // square wave button
-#define D7 7 // sawteeth wave button
-#define D6 6 // triangle wave button
-#define D5 5 // square wave button
-#define SQUARE 3
-#define SAWTEETH 2
-#define TRIANGLE 1
-#define SINE 0
-
-
-#define DATAOUT 11//COPI
-#define DATAIN  12//CIPO
-#define SPICLOCK  13//sck
-#define CHIPSELECT 10//cs
-
-
-//opcodes
-#define WREN  6
-#define WRDI  4
-#define RDSR  5
-#define WRSR  1
-#define READ  3
-#define WRITE 2
-
-byte eeprom_output_data;
-byte eeprom_input_data = 0;
-byte clr;
-int address = 0;
-
-const byte MCP4802_REGISTER  = 0b0001; // first bit (channel A or B --> 0 or 1), second bit (always 0), third bit (gain of 1 or 2, 1 or 0), fourth bit (always 1)
-byte waveform = SINE;
-byte sinus = 0;
-byte counter = 0;
-unsigned int val;
-volatile byte mcp_register = 0;
-const volatile byte WAVEE[2][64] = {
+const volatile byte WAVEFORM_6_bit[2][64] = {
   {
-    //saw
+    // saw
     0x00, 0x04,
     0x08, 0x0C,
     0x10, 0x14,
@@ -75,6 +35,7 @@ const volatile byte WAVEE[2][64] = {
     0xF8, 0xFF
   },
   {
+    // triangle
     0x00, 0x08,
     0x10, 0x18,
     0x20, 0x28,
@@ -109,27 +70,3 @@ const volatile byte WAVEE[2][64] = {
     0x0E, 0x06
   }
 };
-//MCP4802 mcp4802(CS_PIN);
-//unsigned int mcp_register = 0;
-void setup() {
-  Serial.begin(9600);
-  DDRB |= (1 << DDB5) | (1 << DDB3) | (1 << DDB2); // SPI.begin();
-  PORTB |= (1 << PORTB2);
-  SPCR = 0b01010000;//(1 << SPE) | (1 << MSTR) | (0 << CPOL) | (0 << CPHA) | (8 << SPR0);
-}
-
-void loop() {
-  mcp_register = WAVEE[1][counter];
-  PORTB &= ~(1 << PORTB2);
-  SPDR = (MCP4802_REGISTER << 4) | (mcp_register >> 4);
-  while (!(SPSR & (1 << SPIF)));
-  SPDR = (mcp_register >> 4);
-  while (!(SPSR & (1 << SPIF)));
-  PORTB |= (1 << PORTB2);
-  counter = (counter + 1) % 64;
-  /* val = analogRead(1);
-    if (val <= 530)
-     delayMicroseconds(0);
-    else
-     delayMicroseconds(val - 530);*/
-}
